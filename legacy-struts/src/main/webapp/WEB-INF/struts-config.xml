@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC
+        "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN"
+        "http://jakarta.apache.org/struts/dtds/struts-config_1_2.dtd">
+<struts-config>
+
+    <form-beans>
+        <form-bean name="loginForm" type="com.ejemplo.legacy.form.LoginForm"/>
+    </form-beans>
+
+    <action-mappings>
+        <action path="/login" type="com.ejemplo.legacy.action.LoginAction"
+                name="loginForm" scope="request" validate="false">
+            <forward name="form" path="/WEB-INF/jsp/login.jsp"/>
+            <forward name="menu" path="/menu.do" redirect="true"/>
+        </action>
+
+        <action path="/logout" type="com.ejemplo.legacy.action.LogoutAction">
+            <forward name="login" path="/login.do?logout=1" redirect="true"/>
+        </action>
+
+        <action path="/menu" type="com.ejemplo.legacy.action.MenuAction">
+            <forward name="ok" path="/WEB-INF/jsp/menu.jsp"/>
+        </action>
+
+        <action path="/modulo" type="com.ejemplo.legacy.action.ModuloLegacyAction">
+            <forward name="ok" path="/WEB-INF/jsp/moduloLegacy.jsp"/>
+        </action>
+    </action-mappings>
+
+</struts-config>

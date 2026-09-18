@@ -1,0 +1,48 @@
+services:
+  # Almacén de sesiones compartido entre el legacy y la migración
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"   # expuesto solo para poder inspeccionarlo desde el host
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Sistema legacy: Java 8 + Struts 1.2.9 sobre Tomcat 9 (context /legacy)
+  legacy:
+    build: ./legacy-struts
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # Backend de la migración: NestJS (prefijo /api)
+  api:
+    build: ./api-nest
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      PORT: 3000
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # Frontend de la migración: Angular compilado y servido por nginx (base /nuevo/)
+  web:
+    build: ./web-angular
+
+  # Punto de entrada único: todo se sirve bajo el mismo dominio/puerto
+  gateway:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - legacy
+      - api
+      - web
