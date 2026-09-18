@@ -107,29 +107,29 @@ Como ambos renuevan el TTL (**expiración deslizante**), si el usuario trabaja 1
 
 ```mermaid
 flowchart TD
-    A([Usuario abre localhost:8080]) --> B[Gateway redirige a /legacy/login.do]
-    B --> C[/Formulario de login - Struts/]
-    C --> D{¿Credenciales válidas?}
-    D -- No --> C
-    D -- Sí --> E[LoginAction crea shared-session:uuid en Redis<br/>y envía cookie SHARED_SESSION]
-    E --> F[/Menú - Struts/]
+    A(("Inicio")) --> B["Usuario abre localhost:8080<br/>Gateway redirige a /legacy/login.do"]
+    B --> C["Formulario de login - Struts"]
+    C --> D{"Credenciales validas?"}
+    D -->|No| C
+    D -->|Si| E["LoginAction crea shared-session:uuid en Redis<br/>y envia cookie SHARED_SESSION"]
+    E --> F["Menu - Struts"]
 
-    F -- Facturación --> G[/legacy/modulo.do]
-    F -- Clientes --> H[/nuevo/ - Angular]
+    F -->|Facturacion| G["GET /legacy/modulo.do"]
+    F -->|Clientes| H["GET /nuevo/ - Angular"]
 
-    G --> G1{SharedSessionFilter:<br/>¿existe la clave en Redis?}
-    G1 -- Sí, renueva TTL --> G2[/JSP Facturación/]
-    G1 -- No --> X[Redirige a /legacy/login.do?expirada=1]
+    G --> G1{"SharedSessionFilter:<br/>existe la clave en Redis?"}
+    G1 -->|Si, renueva TTL| G2["JSP Facturacion"]
+    G1 -->|No| X["Redirige a /legacy/login.do?expirada=1"]
 
-    H --> H1[authGuard llama GET /api/auth/me]
-    H1 --> H2{SessionGuard de Nest:<br/>¿existe la clave en Redis?}
-    H2 -- Sí, renueva TTL --> H3[/Pantalla Clientes Angular<br/>con el mismo usuario/]
-    H2 -- No, 401 --> X
+    H --> H1["authGuard llama GET /api/auth/me"]
+    H1 --> H2{"SessionGuard de Nest:<br/>existe la clave en Redis?"}
+    H2 -->|Si, renueva TTL| H3["Pantalla Clientes - Angular<br/>con el mismo usuario"]
+    H2 -->|No, 401| X
 
-    G2 -- Volver --> F
-    H3 -- Volver --> F
-    G2 -- Cerrar sesión --> Y[Borra clave en Redis + cookie]
-    H3 -- Cerrar sesión --> Y
+    G2 -->|Volver| F
+    H3 -->|Volver| F
+    G2 -->|Cerrar sesion| Y["Borra clave en Redis y cookie"]
+    H3 -->|Cerrar sesion| Y
     Y --> C
     X --> C
 ```
